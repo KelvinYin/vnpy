@@ -21,7 +21,7 @@ dist
 *.local
 
 # VeighNa
-.vntrader
+examples/veighna_trader/.vntrader
 
 # Visual Studio intermediate files
 *.exp

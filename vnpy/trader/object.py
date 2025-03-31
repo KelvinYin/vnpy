@@ -4,6 +4,8 @@ Basic data structure used for general trading function in the trading platform.
 
 from dataclasses import dataclass, field
 from datetime import datetime as Datetime
+from decimal import Decimal
+import pandas as pd
 
 from .constant import Direction, Exchange, Interval, Offset, Status, Product, OptionType, OrderType
 
@@ -242,8 +244,9 @@ class ContractData(BaseData):
     size: float
     pricetick: float
 
+    min_notional: Decimal = Decimal("1")    # order's value, price * amount >= min_notional
     min_volume: float = 1                   # minimum order volume
-    max_volume: float | None = None      # maximum order volume
+    max_volume: float | None = None         # maximum order volume
     stop_supported: bool = False            # whether server supports stop order
     net_position: bool = False              # whether gateway uses net position volume
     history_data: bool = False              # whether gateway provides bar history data
@@ -425,3 +428,52 @@ class QuoteRequest:
             gateway_name=gateway_name,
         )
         return quote
+
+
+@dataclass
+class OrderQueryRequest:
+    """
+    Query the existing order status
+    """
+    orderid: str
+    symbol: str
+    exchange: Exchange
+
+    def __post_init__(self):
+        """"""
+        self.vt_symbol = f"{self.symbol}.{self.exchange.value}"
+
+
+@dataclass
+class OriginalKlineData(BaseData):
+    """
+    exchange kline data
+    """
+    symbol: str
+    exchange: Exchange
+    interval: Interval
+    kline_df: pd.DataFrame
+    klines: list
+    def __post_init__(self) -> None:
+        """"""
+        self.vt_symbol: str = f"{self.symbol}.{self.exchange.value}"
+
+
+@dataclass
+class FundingRateData(BaseData):
+    """
+    FundingRate/PremiumIndex
+    """
+    symbol: str
+    exchange: Exchange
+    last_funding_rate_str: str
+    next_funding_time_str: str
+    next_funding_time: Datetime
+    last_funding_rate: float
+    bid_spread_pct: float = 0
+    ask_spread_pct: float = 0
+
+    def __post_init__(self):
+        """"""
+        self.vt_symbol = f"{self.symbol}.{self.exchange.value}"
+
